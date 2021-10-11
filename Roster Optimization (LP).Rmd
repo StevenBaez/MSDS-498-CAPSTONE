@@ -1,0 +1,41 @@
+---
+title: "Baseball Notebook"
+output: html_notebook
+---
+dat = read.csv("/Users/stevenbaez/Desktop/MSDS Capstone/MLB Outputcsv.csv")
+dat[is.na(dat)] = 0
+names(dat)
+head(dat)
+
+library("lpSolve")
+
+i = 816
+
+cons = rbind(
+  rep(1,i), 
+  sapply(dat$POS, function(x) if (x == "SP") x=1 else x=0), 
+  sapply(dat$POS, function(x) if (x == "RP") x=1 else x=0), 
+  sapply(dat$POS, function(x) if (x == "C") x=1 else x=0), 
+  sapply(dat$POS, function(x) if (x == "CF") x=1 else x=0),
+  sapply(dat$POS, function(x) if (x == "RF") x=1 else x=0),
+  sapply(dat$POS, function(x) if (x == "LF") x=1 else x=0),
+  sapply(dat$POS, function(x) if (x == "1B") x=1 else x=0), 
+  sapply(dat$POS, function(x) if (x == "2B") x=1 else x=0), 
+  sapply(dat$POS, function(x) if (x == "3B") x=1 else x=0), 
+  sapply(dat$POS, function(x) if (x == "SS") x=1 else x=0),
+  dat$Salary
+)
+
+f.obj = dat$Team.Fit
+f.dir = c("=","==","==","==","==","==","==","==","==","==","==","<=")
+f.rhs = c(25,5,7,2,2,2,2,2,1,1,1,175000000)
+
+
+model = lp("max", f.obj, cons, f.dir, f.rhs, all.bin=TRUE)
+model
+
+
+sol = model$solution
+sol
+
+dat[which(sol>0),c(1:25)]
